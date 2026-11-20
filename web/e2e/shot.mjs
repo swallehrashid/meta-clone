@@ -1,0 +1,13 @@
+import { chromium, devices } from 'playwright-core'
+const [url, out, w = '390', h = '844'] = process.argv.slice(2)
+const b = await chromium.launch({ channel: 'chrome', headless: true })
+const ctx = await b.newContext({ viewport: { width: +w, height: +h }, deviceScaleFactor: 2, isMobile: +w < 700, hasTouch: +w < 700 })
+const page = await ctx.newPage()
+page.on('console', (m) => { if (m.type() === 'error') console.log('console.error:', m.text()) })
+page.on('pageerror', (e) => console.log('pageerror:', e.message))
+await page.goto(url)
+await page.waitForFunction(() => window.__lab?.state().app?.status === 'open' && window.__lab.state()['pane:chart-0']?.bars > 10, null, { timeout: 30000 })
+await page.waitForTimeout(1500)
+await page.screenshot({ path: out })
+console.log(JSON.stringify(await page.evaluate(() => window.__lab.state())))
+await b.close()

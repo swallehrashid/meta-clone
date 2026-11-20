@@ -1,0 +1,78 @@
+symbols: [EURUSD, GBPUSD, EURJPY, GBPJPY]   # use the exact broker names (some add suffixes like EURUSDm)
+symbol_suffix: ""
+display_timezone: America/New_York
+db_path: data/ticks.db
+
+collector:
+  poll_ms: 250
+  backfill_hours_on_start: 24
+  # Operational knobs (not in the original plan; kept here per hard rule 6)
+  batch_size: 50000          # max ticks per copy_ticks_from call
+  backfill_chunk_minutes: 60 # backfill request window size
+  gap_seconds: 60            # no ticks for this long while market is open -> 'gap'
+  idle_poll_ms: 5000         # poll interval while the market is closed
+  offset_recheck_seconds: 3600
+
+delay:
+  default_seconds: 300
+  presets_seconds: [60, 300, 900]
+  min_seconds: 1             # /ws/stream refuses less; zero delay exists only as /ws/peek
+  max_seconds: 86400
+
+server:
+  stream_interval_ms: 250
+  backfill_candles: 300
+  tick_batch_limit: 5000
+  heartbeat_seconds: 1.0
+
+candles:
+  timeframes: [M1, M5, M15, M30, H1, H4, D1]   # W1 / MN are built from D1 by the terminal
+  price_side: bid            # MT5 charts are bid-based
+
+grader:
+  step_seconds: 60           # grade an entry every N seconds of market time
+  time_exit_horizons_s: [30, 60, 120, 300]   # "no SL/TP" mode: hold, then check P&L
+  fixed_mode:
+    enabled: false           # turn on once the strategy's SL/TP are decided
+    sl_pips: 3.0
+    tp_pips: 4.5
+    max_hold_s: 300
+  entry_max_wait_s: 10       # no tick this soon after the entry time -> entry is ungradable
+  worker_interval_s: 2
+  chunk_minutes: 60
+
+analysis:
+  horizon_s: 60              # primary horizon in the report (win rate, delta vs baseline)
+  min_bucket_n: 100          # buckets with fewer samples are flagged unreliable
+  n_buckets: 5               # quantile bins for continuous features
+  oracle:                    # "answer key": the entries that worked best in hindsight
+    mode: top_decile         # top_decile | run | fixed_tp
+    horizon_s: 60            #   top_decile: rank by net pips at this horizon
+    quantile: 0.9            #   top_decile: keep entries at/above this quantile
+    run_mfe_pips: 4.5        #   run: >= this far in favour ...
+    run_mae_pips: 3.0        #   ... and never this far against, within the window
+
+engine:                     # paper trading account (Phase 6); account currency is USD
+  starting_balance: 10000
+  leverage: 100
+  stop_out_pct: 50           # force-close the worst position when equity/margin falls below this %
+  latency_ms: 0              # market orders fill at the quote in force at (order time + latency)
+  min_volume: 0.01
+  volume_step: 0.01
+  max_volume: 50
+  min_stop_pips: 0.0         # SL/TP must be at least this far from the price
+  max_quote_age_s: 120       # no fills on a quote older than this
+  risk_check_ms: 1000
+  equity_sample_s: 60
+  advance_interval_s: 1.0
+
+costs:
+  commission_per_lot_round_trip: 0.0   # set to broker's real value
+  extra_slippage_pips: 0.0             # charged on each fill (entry and exit)
+  contract_size: 100000
+
+sessions:                    # in display timezone, used for features and filters
+  london_open: "03:00"
+  ny_open: "08:00"
+  ny_session_end: "11:00"
+  high_low_anchor: london_open   # session high/low measured since the latest london_open | ny_open

@@ -1,0 +1,42 @@
+/* Back-office layout (dark; the colour variables come from theme.ts via applyCssVars). */
+.admin { min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg); }
+.admin-bar { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--panel-border); flex-wrap: wrap; position: sticky; top: 0; z-index: 20; }
+.admin-bar .brand { margin-right: 6px; } .admin-bar .sp { flex: 1; } .admin-bar a { color: var(--accent); text-decoration: none; font-size: 13px; }
+.admin-bar nav { display: flex; gap: 4px; }
+.admin-bar button, .panel button, .panel select, .panel input { min-height: 36px; background: #161616; border: 1px solid var(--panel-border); border-radius: 6px; padding: 0 10px; color: var(--text); }
+.admin-bar button, .panel button { cursor: pointer; } .admin-bar button:disabled, .panel button:disabled { opacity: .45; cursor: default; }
+.admin-bar nav button.on, .panel button.on, .panel .seg button.on { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+.panel button.primary { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+.admin-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.admin-body > .app { height: calc(100dvh - 58px); }
+.panel { padding: 14px 16px 60px; max-width: 1100px; width: 100%; margin: 0 auto; }
+.panel h2 { margin: 6px 0 4px; font-size: 20px; } .panel h3 { margin: 0 0 8px; font-size: 15px; } .panel h4 { margin: 16px 0 6px; font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: .4px; }
+.card { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px 14px; margin: 12px 0; }
+.card.danger { border-color: #5a2a2a; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 0; } .row.wrap { gap: 4px 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 14px; margin: 8px 0; }
+.panel label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--dim); }
+.panel label.inline { flex-direction: row; align-items: center; gap: 6px; } .panel label.check { flex-direction: row; align-items: center; gap: 6px; color: var(--text); font-size: 13px; }
+.panel label input:not([type=checkbox]), .panel label select { width: 100%; color: var(--text); font-size: 14px; } .panel label.inline input, .panel label.inline select { width: auto; }
+.panel input[type=checkbox] { min-height: 0; width: 16px; height: 16px; }
+.hint { font-size: 11px; color: #666; } .lbl { font-size: 12px; color: var(--dim); }
+.ok { color: var(--up); }
+.panel .tag { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 3px; background: #262626; color: #aaa; font-weight: 700; margin: 0 4px; }
+.panel .tag.peek { background: var(--peek); color: #000; }
+.fwd { border: 1px dashed var(--panel-border); border-radius: 8px; padding: 8px 10px; margin: 8px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.fwd.on { border-color: var(--peek); background: #1d1608; }
+.panel .seg { display: inline-flex; } .panel .seg button { border-radius: 0; margin-left: -1px; } .panel .seg button:first-child { border-radius: 6px 0 0 6px; margin: 0; } .panel .seg button:last-child { border-radius: 0 6px 6px 0; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; } .tbl th { text-align: left; color: var(--dim); font-weight: 500; font-size: 11.5px; padding: 4px 8px; border-bottom: 1px solid var(--panel-border); }
+.tbl td { padding: 6px 8px; border-bottom: 1px solid #1c1c1c; vertical-align: top; } .tbl tbody tr { cursor: default; } .tbl tr.sel td { background: #101a28; }
+#root .tbl.kv td:nth-child(odd) { color: var(--dim); white-space: nowrap; }
+.card .tbl tbody tr[data-testid^=run-] { cursor: pointer; }
+.detail { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--panel-border); }
+.banner { padding: 9px 12px; border-radius: 6px; margin: 8px 0; font-size: 13px; } .banner.peek { background: #3a2a08; border: 1px solid var(--peek); } .banner.verdict { background: #101a28; border: 1px solid #1f3b5c; }
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-top: 10px; } .mini { background: #121212; border: 1px solid var(--panel-border); border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; }
+.mini.peeked { border-color: #6b4a10; } .mini b { font-size: 12px; }
+.log { font-size: 12px; font-family: ui-monospace, monospace; max-height: 180px; overflow: auto; padding: 6px 0; }
+.equity-chart { height: 180px; margin: 10px 0; }
+.login { max-width: 380px; margin: 12vh auto; padding: 22px; background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; display: flex; flex-direction: column; gap: 12px; }
+.login h1 { margin: 0; font-size: 22px; } .login label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--dim); } .login input { min-height: 42px; background: #161616; border: 1px solid var(--panel-border); border-radius: 6px; padding: 0 10px; color: var(--text); font-size: 16px; }
+.login button { min-height: 44px; border-radius: 6px; border: 0; background: var(--accent); color: #000; font-weight: 600; }
+code { background: #1a1a1a; padding: 1px 5px; border-radius: 3px; font-size: 12px; }

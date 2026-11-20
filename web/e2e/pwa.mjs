@@ -1,0 +1,32 @@
+// PWA checks for the terminal at `/`.   LAB_URL=http://127.0.0.1:8800 node e2e/pwa.mjs
+import { chromium } from 'playwright-core'
+const URL_ = process.env.LAB_URL ?? 'http://127.0.0.1:8800'
+let failed = 0
+const check = (n, ok, d = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${n}${d ? '  — ' + d : ''}`); if (!ok) failed++ }
+const b = await chromium.launch({ channel: 'chrome', headless: true })
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
+const page = await ctx.newPage()
+await page.goto(URL_)
+await page.waitForFunction(() => window.__lab?.state().terminal?.status === 'open', null, { timeout: 30000 })
+const man = await page.evaluate(async () => { const href = document.querySelector('link[rel=manifest]').href; const r = await fetch(href); return { ct: r.headers.get('content-type'), j: await r.json() } })
+check('manifest linked and valid JSON', man.j.display === 'standalone' && man.j.start_url === '/' && man.j.icons.length >= 3, man.ct)
+const icons = await page.evaluate(async (icons) => Promise.all(icons.map(async (i) => { const r = await fetch(i.src); const bm = await createImageBitmap(await r.blob()); return { src: i.src, status: r.status, w: bm.width, h: bm.height, want: i.sizes } })), man.j.icons)
+check('192 / 512 / maskable icons exist and are the declared size', icons.every((i) => i.status === 200 && `${i.w}x${i.h}` === i.want), icons.map((i) => `${i.w}x${i.h}`).join(' '))
+const meta = await page.evaluate(() => ({ vp: document.querySelector('meta[name=viewport]').content, theme: document.querySelector('meta[name=theme-color]')?.content, apple: !!document.querySelector('link[rel=apple-touch-icon]') }))
+check('viewport / theme-color / apple-touch-icon set', /width=device-width/.test(meta.vp) && meta.theme === '#000000' && meta.apple)
+const reg = await page.evaluate(async () => { const r = await navigator.serviceWorker.ready; return { scope: r.scope, active: !!r.active } })
+check('service worker registered and active', reg.active && reg.scope.endsWith('/'), reg.scope)
+await page.reload(); await page.waitForFunction(() => window.__lab?.state().terminal?.status === 'open', null, { timeout: 30000 })
+const cached = await page.evaluate(async () => { const out = []; for (const k of await caches.keys()) for (const r of await (await caches.open(k)).keys()) out.push(new URL(r.url).pathname); return out })
+const live = cached.filter((p) => /^\/(api|labels|features|calls|ws|health)/.test(p))
+check('service worker caches the app shell', cached.includes('/') && cached.some((p) => p.startsWith('/assets/')), `${cached.length} files`)
+check('service worker never caches live data (api / labels / calls / ws)', live.length === 0, live.join(','))
+// offline: the shell still opens (data would be unavailable, the UI must say so rather than crash)
+await ctx.setOffline(true)
+const p2 = await ctx.newPage(); const errs = []; p2.on('pageerror', (e) => errs.push(e.message))
+await p2.goto(URL_).catch(() => {})
+await p2.waitForTimeout(1500)
+check('offline: app shell still loads from the cache', (await p2.locator('#root').innerText()).length > 0 && errs.length === 0, (await p2.locator('#root').innerText()).slice(0, 60))
+await ctx.setOffline(false)
+await b.close()
+console.log(failed ? `${failed} FAILED` : 'PWA CHECKS PASSED'); process.exit(failed ? 1 : 0)
